@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.985 0.008 95);
+  --foreground: oklch(0.22 0.03 151);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.03 151);
+  --primary: oklch(0.43 0.13 151);
+  --primary-foreground: oklch(0.985 0.008 95);
+  --secondary: oklch(0.93 0.035 135);
+  --secondary-foreground: oklch(0.28 0.06 151);
+  --muted: oklch(0.955 0.012 100);
+  --muted-foreground: oklch(0.46 0.025 151);
+  --accent: oklch(0.935 0.035 135);
+  --accent-foreground: oklch(0.28 0.06 151);
+  --border: oklch(0.875 0.018 120);
+  --ring: oklch(0.52 0.13 151);
+  --warm: oklch(0.88 0.12 82);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-warm: var(--warm);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: calc(var(--radius) * 0.875);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.6);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: oklch(0.82 0.09 137);
+  color: var(--foreground);
+}
+
+.page-container {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(to right, oklch(0.42 0.05 145 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.42 0.05 145 / 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to bottom, black 45%, transparent 92%);
+}
+
+@media (min-width: 48rem) {
+  .page-container {
+    width: min(100% - 3rem, 72rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
