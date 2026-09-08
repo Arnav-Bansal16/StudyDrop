@@ -8,6 +8,7 @@
 # testing
 /test-results/
 /playwright-report/
+/coverage/
 
 # local files
 .DS_Store
