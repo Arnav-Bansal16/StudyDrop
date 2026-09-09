@@ -39,6 +39,9 @@ export async function SiteHeader() {
           ))}
           {isAuthenticated ? (
             <>
+              <Link href="/sessions/new" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Create
+              </Link>
               <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "sm" })}>
                 Dashboard
               </Link>
@@ -78,6 +81,9 @@ export async function SiteHeader() {
             ))}
             {isAuthenticated ? (
               <>
+                <Link href="/sessions/new" className={buttonVariants({ variant: "ghost" })}>
+                  Create a session
+                </Link>
                 <Link href="/dashboard" className={buttonVariants({ variant: "ghost" })}>
                   Dashboard
                 </Link>

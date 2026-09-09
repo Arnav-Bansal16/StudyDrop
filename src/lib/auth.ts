@@ -13,7 +13,7 @@ import {
 
 const DEMO_AUTH_COOKIE = "studydrop-demo-user";
 
-type DemoUser = {
+export type DemoUser = {
   displayName: string;
   email: string;
 };

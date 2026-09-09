@@ -723,15 +723,15 @@ Implement only the Demo MVP Supabase/auth foundation. Add versioned migrations f
 
 Expected result: real accounts and database security work, while browse/detail may still use the existing typed demo-data adapter until the next prompt.
 
-### Prompt 5 — Real session mutations and capacity enforcement
+### Prompt 5 — Demo session mutations and capacity enforcement
 
 ```text
 [Context header]
 
-Implement only the Demo MVP session-action vertical slice. Replace demo reads with Supabase and add create, cancel, join, and leave using Server Actions, shared validation, and narrow database functions/policies. Capacity includes the organizer and must not be exceeded. Keep public/unlisted behavior and token privacy. Add focused authorization, capacity, and happy-path tests. Defer editing, optimistic UI, exhaustive lifecycle/idempotency cases, and dedicated concurrency stress tooling; keep database writes atomic enough that two joins cannot knowingly overbook.
+Implement only the Demo MVP session-action vertical slice. Keep the confirmed demo-only architecture: use a deterministic process-local mock data adapter seeded from the static sessions and courses, with Server Actions, shared validation, and server-side authorization checks for create, cancel, join, and leave. Capacity includes the organizer and must not be exceeded within the adapter's supported execution model. Keep public/unlisted behavior and token privacy. Add focused authorization, capacity, and happy-path tests. Defer editing, optimistic UI, real persistence, database concurrency claims, and Supabase integration.
 ```
 
-Expected result: the primary two-user StudyDrop journey is persistent, authorized, and race-safe.
+Expected result: the primary two-user StudyDrop journey is presentation-ready and authorized, with an explicit process-local reset limitation and a replaceable future persistence boundary.
 
 ### Prompt 6 — Dashboard and resilient UX completion
 

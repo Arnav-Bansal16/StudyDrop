@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer components {
+  .input {
+    @apply border-border bg-background focus:ring-primary/60 min-h-11 w-full rounded-xl border px-3 text-sm outline-none focus:ring-2;
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(0.985 0.008 95);
