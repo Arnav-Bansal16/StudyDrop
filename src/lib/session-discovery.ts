@@ -1,8 +1,9 @@
 import {
-  findPublicDemoSessionById,
-  findUnlistedDemoSessionByShareToken,
-  listDemoSessions,
-} from "@/lib/data/demo-sessions";
+  findMockSessionById,
+  findMockSessionByShareToken,
+  listMockSessions,
+} from "@/lib/data/mock-session-store";
+import { buildDemoSessions } from "@/lib/data/demo-sessions";
 import type { StudySession } from "@/lib/types/session";
 
 export function normalizeCourseSearchQuery(value: string): string {
@@ -38,7 +39,12 @@ export function listBrowseSessions(
 ): StudySession[] {
   const normalizedQuery = normalizeCourseSearchQuery(searchQuery);
 
-  return listDemoSessions(referenceTime)
+  const sessions = listMockSessions();
+  const seedIds = new Set(buildDemoSessions(referenceTime).map((session) => session.id));
+  const adjustedSeeds = buildDemoSessions(referenceTime);
+  const dynamicSessions = sessions.filter((session) => !seedIds.has(session.id));
+
+  return [...adjustedSeeds, ...dynamicSessions]
     .filter(
       (session) =>
         new Date(session.startsAt).getTime() > referenceTime.getTime(),
@@ -55,12 +61,15 @@ export function findBrowseSessionById(
   id: string,
   referenceTime: Date = new Date(),
 ): StudySession | undefined {
-  return findPublicDemoSessionById(id, referenceTime);
+  const session = buildDemoSessions(referenceTime).find((candidate) => candidate.id === id) ?? findMockSessionById(id);
+  return session?.visibility === "public" ? session : undefined;
 }
 
 export function findUnlistedSessionByToken(
   token: string,
   referenceTime: Date = new Date(),
 ): StudySession | undefined {
-  return findUnlistedDemoSessionByShareToken(token, referenceTime);
+  return buildDemoSessions(referenceTime).find(
+    (session) => session.visibility === "unlisted" && session.shareToken === token,
+  ) ?? findMockSessionByShareToken(token);
 }

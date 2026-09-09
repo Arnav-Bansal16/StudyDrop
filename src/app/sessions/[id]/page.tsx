@@ -6,8 +6,12 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SessionActions } from "@/components/sessions/session-actions";
+import { getDemoUser } from "@/lib/auth";
+import { getDemoUserId } from "@/lib/demo-user";
+import { isMockParticipant } from "@/lib/data/mock-session-store";
 import { findBrowseSessionById } from "@/lib/session-discovery";
-import { getOccupancy, getSessionDisplayStatus } from "@/lib/session-status";
+import { canJoinSession, canLeaveSession, getOccupancy, getSessionDisplayStatus } from "@/lib/session-status";
 
 function formatStatusLabel(value: string): string {
   switch (value) {
@@ -104,6 +108,18 @@ export default async function PublicSessionPage({ params }: PageProps) {
 
   const status = getSessionDisplayStatus(session, new Date());
   const occupancy = getOccupancy(session);
+  const user = await getDemoUser();
+  const actorId = user ? getDemoUserId(user) : "signed-out";
+  const joinEligibility = canJoinSession(session, actorId, new Date());
+  const joined = user ? isMockParticipant(session.id, actorId) : false;
+  const leaveEligibility = canLeaveSession(session, actorId, new Date());
+  const reason = joinEligibility.reason === "full"
+    ? "This session is full."
+    : joinEligibility.reason === "cancelled"
+      ? "This session was cancelled."
+      : joinEligibility.reason === "closed"
+        ? "Joining is closed for this session."
+        : undefined;
 
   return (
     <main className="page-container py-10 sm:py-12">
@@ -203,6 +219,20 @@ export default async function PublicSessionPage({ params }: PageProps) {
         </section>
 
         <aside className="space-y-5">
+          <Card>
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              <h2 className="text-lg font-semibold tracking-[-0.03em]">Your participation</h2>
+              <SessionActions
+                sessionId={session.id}
+                returnPath={`/sessions/${session.id}`}
+                canJoin={joinEligibility.eligible && !joined}
+                canLeave={joined && leaveEligibility.eligible}
+                canCancel={Boolean(user && user ? session.hostId === getDemoUserId(user) : false)}
+                joined={joined}
+                disabledReason={reason}
+              />
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="space-y-4 p-5 sm:p-6">
               <h2 className="text-lg font-semibold tracking-[-0.03em]">

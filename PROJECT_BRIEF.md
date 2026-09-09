@@ -113,3 +113,11 @@ For the hackathon demo, implementation may first target the smaller **Demo MVP c
 ## Demo-only mode decision
 
 For the current hackathon demo checkpoint, the application uses committed static session/course data and a clearly labeled, cookie-backed mock authentication flow. It does not require Supabase, real email confirmation, durable user accounts, database persistence, or session mutations. Real Supabase authentication and database-backed P0 behavior remain deferred until the owner explicitly resumes that integration.
+
+For the Phase 5 demo checkpoint, session mutations use a clearly isolated,
+deterministic process-local mock adapter seeded from the static demo sessions
+and course catalog. Server Actions perform the authorization and lifecycle
+checks before create, join, leave, and cancel operations. This is intentionally
+not durable or race-safe database persistence: data can reset after a server
+restart or when a deployment instance changes, and the adapter is the
+replaceable boundary for a future Supabase implementation.
