@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { Brand } from "@/components/site/brand";
 import { buttonVariants } from "@/components/ui/button";
+import { signOutAction } from "@/lib/auth";
+import { getDemoUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -10,7 +12,10 @@ const navLinks = [
   { href: "/login", label: "Log in" },
 ];
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const user = await getDemoUser();
+  const isAuthenticated = Boolean(user);
+
   return (
     <header className="border-border/75 bg-background/95 supports-[backdrop-filter]:bg-background/85 sticky top-0 z-40 border-b backdrop-blur">
       <div className="page-container flex h-18 items-center justify-between gap-4">
@@ -32,9 +37,22 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <Link href="/signup" className={buttonVariants({ size: "sm" })}>
-            Sign up
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Dashboard
+              </Link>
+              <form action={signOutAction}>
+                <button type="submit" className={buttonVariants({ size: "sm" })}>
+                  Log out
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link href="/signup" className={buttonVariants({ size: "sm" })}>
+              Sign up
+            </Link>
+          )}
         </nav>
 
         <details className="group relative md:hidden">
@@ -58,12 +76,22 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/signup"
-              className={cn(buttonVariants(), "mt-1 w-full rounded-xl")}
-            >
-              Sign up
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href="/dashboard" className={buttonVariants({ variant: "ghost" })}>
+                  Dashboard
+                </Link>
+                <form action={signOutAction} className="w-full">
+                  <button type="submit" className={cn(buttonVariants(), "mt-1 w-full rounded-xl")}>
+                    Log out
+                  </button>
+                </form>
+              </>
+            ) : (
+              <Link href="/signup" className={cn(buttonVariants(), "mt-1 w-full rounded-xl")}>
+                Sign up
+              </Link>
+            )}
           </nav>
         </details>
       </div>

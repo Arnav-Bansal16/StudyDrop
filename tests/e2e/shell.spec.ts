@@ -24,19 +24,18 @@ test("landing page exposes metadata and primary routes", async ({ page }) => {
   ).toContainText("Log in");
 });
 
-test("route shells navigate without claiming active behavior", async ({
+test("demo auth protects dashboard and exposes the auth forms", async ({
   page,
 }) => {
-  for (const path of [
-    "/sessions",
-    "/sessions/new",
-    "/dashboard",
-    "/login",
-    "/signup",
-  ]) {
-    await page.goto(path);
-    await expect(page.getByText("later MVP phase")).toBeVisible();
-  }
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
+
+  await expect(page.getByRole("heading", { name: "Log in to StudyDrop" })).toBeVisible();
+  await expect(page.getByText("Demo mode: no real account or email is created.")).toBeVisible();
+
+  await page.goto("/signup");
+  await expect(page.getByRole("heading", { name: "Create your StudyDrop account" })).toBeVisible();
+  await expect(page.getByText("Demo mode: no real account or email is created.")).toBeVisible();
 });
 
 test("unknown routes render the branded not-found surface", async ({

@@ -109,3 +109,7 @@ These items must not be added to the initial build unless the project owner expl
 P0 is the committed MVP. P1 is optional and should begin only after P0 is complete and reliable. No separate P2 feature set has been defined yet; any future P2 ideas must remain deferred until explicitly agreed upon and recorded here.
 
 For the hackathon demo, implementation may first target the smaller **Demo MVP checkpoint** defined in `IMPLEMENTATION_PLAN.md` and `TEST_CHECKLIST.md`. That checkpoint is a presentable vertical slice, not completion of P0; deferred P0 requirements remain required before claiming P0 complete.
+
+## Demo-only mode decision
+
+For the current hackathon demo checkpoint, the application uses committed static session/course data and a clearly labeled, cookie-backed mock authentication flow. It does not require Supabase, real email confirmation, durable user accounts, database persistence, or session mutations. Real Supabase authentication and database-backed P0 behavior remain deferred until the owner explicitly resumes that integration.
