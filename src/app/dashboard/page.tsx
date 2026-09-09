@@ -107,7 +107,7 @@ export default async function DashboardPage({
   );
   const actorId = getDemoUserId(user);
   const now = new Date();
-  const allSessions = listMockSessions();
+  const allSessions = listMockSessions(now);
   const joinedSessionIds = new Set(
     allSessions
       .filter((session) => isMockParticipant(session.id, actorId))

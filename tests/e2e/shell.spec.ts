@@ -62,6 +62,65 @@ test("unknown routes render the branded not-found surface", async ({
   ).toHaveAttribute("href", "/");
 });
 
+test("unlisted sessions resolve only through their share link", async ({
+  page,
+}) => {
+  await page.goto("/sessions");
+  await expect(page.getByText("Homework 6 problem walkthrough")).toHaveCount(0);
+
+  await page.goto("/s/21111111-1111-4111-8111-111111111104");
+  await expect(
+    page.getByRole("heading", { name: "Homework 6 problem walkthrough" }),
+  ).toBeVisible();
+  await expect(page.getByText("Unlisted link", { exact: true })).toBeVisible();
+
+  const response = await page.goto(
+    "/sessions/11111111-1111-4111-8111-111111111104",
+  );
+  expect(response?.status()).toBe(404);
+});
+
+test("demo auth validation, persistence, logout, and mobile layout work", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+  });
+  const page = await context.newPage();
+
+  for (const path of ["/", "/sessions", "/signup"]) {
+    await page.goto(path);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(390);
+  }
+
+  await page.goto("/signup");
+  await page.getByLabel("Display name").fill("Mobile Demo");
+  await page.getByLabel("Email address").fill("student@gmail.com");
+  await page.getByLabel("Password", { exact: true }).fill("password123");
+  await page.getByLabel("Confirm password").fill("password123");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(
+    page.getByText("Only calpoly.edu addresses can sign up."),
+  ).toBeVisible();
+
+  await page.goto("/signup");
+  await page.getByLabel("Display name").fill("Mobile Demo");
+  await page.getByLabel("Email address").fill("student@calpoly.edu");
+  await page.getByLabel("Password", { exact: true }).fill("password123");
+  await page.getByLabel("Confirm password").fill("password123");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Log out" }).click();
+  await expect(page).toHaveURL("/");
+  await context.close();
+});
+
 test("two demo users can create, join, leave, and cancel a session", async ({
   browser,
 }) => {
@@ -140,6 +199,7 @@ test("two demo users can create, join, leave, and cancel a session", async ({
 
   await host.goto(sessionPath);
   await host.getByRole("button", { name: "Cancel session" }).click();
+  await host.getByRole("button", { name: "Confirm cancellation" }).click();
   await expect(
     host.getByText("Cancelled", { exact: true }).first(),
   ).toBeVisible();

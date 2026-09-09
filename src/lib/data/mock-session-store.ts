@@ -54,32 +54,51 @@ function state(): StoreState {
   return globalStore[STORE_KEY];
 }
 
-function sessionWithCount(current: StudySession): StudySession {
+function sessionWithCount(
+  current: StudySession,
+  referenceTime = new Date(),
+): StudySession {
   const participantCount = state().participants.get(current.id)?.size ?? 0;
-  return { ...current, participantCount };
+  const seededSession = state().seededIds.has(current.id)
+    ? buildDemoSessions(referenceTime).find(
+        (session) => session.id === current.id,
+      )
+    : undefined;
+
+  return {
+    ...(seededSession ?? current),
+    cancelledAt: current.cancelledAt,
+    participantCount,
+  };
 }
 
 export function resetMockSessionStore(referenceTime = new Date()) {
   globalStore[STORE_KEY] = createState(referenceTime);
 }
 
-export function listMockSessions(): StudySession[] {
-  return [...state().sessions.values()].map(sessionWithCount);
+export function listMockSessions(referenceTime = new Date()): StudySession[] {
+  return [...state().sessions.values()].map((session) =>
+    sessionWithCount(session, referenceTime),
+  );
 }
 
-export function findMockSessionById(id: string): StudySession | undefined {
+export function findMockSessionById(
+  id: string,
+  referenceTime = new Date(),
+): StudySession | undefined {
   const session = state().sessions.get(id);
-  return session ? sessionWithCount(session) : undefined;
+  return session ? sessionWithCount(session, referenceTime) : undefined;
 }
 
 export function findMockSessionByShareToken(
   token: string,
+  referenceTime = new Date(),
 ): StudySession | undefined {
   const session = [...state().sessions.values()].find(
     (candidate) =>
       candidate.visibility === "unlisted" && candidate.shareToken === token,
   );
-  return session ? sessionWithCount(session) : undefined;
+  return session ? sessionWithCount(session, referenceTime) : undefined;
 }
 
 export function isMockParticipant(id: string, actorId: string): boolean {
@@ -136,7 +155,13 @@ export function joinMockSession(
   const session = findMockSessionById(id);
   if (!session)
     return { ok: false as const, message: "That session could not be found." };
-  const members = state().participants.get(id)!;
+  const members = state().participants.get(id);
+  if (!members) {
+    return {
+      ok: false as const,
+      message: "That session could not be found.",
+    };
+  }
   if (members.has(actorId))
     return {
       ok: false as const,
@@ -165,7 +190,13 @@ export function leaveMockSession(
   const session = findMockSessionById(id);
   if (!session)
     return { ok: false as const, message: "That session could not be found." };
-  const members = state().participants.get(id)!;
+  const members = state().participants.get(id);
+  if (!members) {
+    return {
+      ok: false as const,
+      message: "That session could not be found.",
+    };
+  }
   if (!members.has(actorId))
     return {
       ok: false as const,

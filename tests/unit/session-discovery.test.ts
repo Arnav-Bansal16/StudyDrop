@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   findBrowseSessionById,
@@ -7,8 +7,14 @@ import {
   matchesCourseSearch,
 } from "@/lib/session-discovery";
 import { buildDemoSessions } from "@/lib/data/demo-sessions";
+import {
+  cancelMockSession,
+  resetMockSessionStore,
+} from "@/lib/data/mock-session-store";
 
 const REFERENCE_TIME = new Date("2026-01-15T18:00:00.000Z");
+
+beforeEach(() => resetMockSessionStore(REFERENCE_TIME));
 
 describe("matchesCourseSearch", () => {
   it("matches course subject, number, and title case-insensitively", () => {
@@ -56,6 +62,30 @@ describe("listBrowseSessions", () => {
 });
 
 describe("public and unlisted routing", () => {
+  it("keeps seeded mutations consistent across browse and detail reads", () => {
+    const publicSession = buildDemoSessions(REFERENCE_TIME).find(
+      (session) => session.visibility === "public",
+    )!;
+
+    expect(
+      listBrowseSessions(REFERENCE_TIME).some(
+        (session) => session.id === publicSession.id,
+      ),
+    ).toBe(true);
+    expect(
+      cancelMockSession(publicSession.id, publicSession.hostId, REFERENCE_TIME)
+        .ok,
+    ).toBe(true);
+    expect(
+      listBrowseSessions(REFERENCE_TIME).some(
+        (session) => session.id === publicSession.id,
+      ),
+    ).toBe(false);
+    expect(
+      findBrowseSessionById(publicSession.id, REFERENCE_TIME)?.cancelledAt,
+    ).toBe(REFERENCE_TIME.toISOString());
+  });
+
   it("finds a public session by id and never resolves an unlisted session there", () => {
     const allSessions = buildDemoSessions(REFERENCE_TIME);
     const publicSession = allSessions.find(
