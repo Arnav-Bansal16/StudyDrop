@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
 
-import { RouteShell } from "@/components/site/route-shell";
+import { AuthForm } from "@/components/auth/auth-form";
+import { signInAction } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Log in" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ next?: string }>;
+}) {
+  const next = (await searchParams)?.next ?? "/dashboard";
+
   return (
-    <RouteShell
-      eyebrow="Account shell"
+    <AuthForm
+      mode="login"
       title="Log in to StudyDrop"
-      description="Secure Cal Poly account access will be connected in the authentication phase. No login form is active yet."
+      description="Use any calpoly.edu email and demo password to access the protected demo routes."
+      action={signInAction}
+      next={next}
     />
   );
 }
