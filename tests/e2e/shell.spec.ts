@@ -32,12 +32,20 @@ test("demo auth protects dashboard and exposes the auth forms", async ({
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
 
-  await expect(page.getByRole("heading", { name: "Log in to StudyDrop" })).toBeVisible();
-  await expect(page.getByText("Demo mode: no real account or email is created.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Log in to StudyDrop" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Demo mode: no real account or email is created."),
+  ).toBeVisible();
 
   await page.goto("/signup");
-  await expect(page.getByRole("heading", { name: "Create your StudyDrop account" })).toBeVisible();
-  await expect(page.getByText("Demo mode: no real account or email is created.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Create your StudyDrop account" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Demo mode: no real account or email is created."),
+  ).toBeVisible();
 });
 
 test("unknown routes render the branded not-found surface", async ({
@@ -64,29 +72,82 @@ test("two demo users can create, join, leave, and cancel a session", async ({
   const guest = await guestContext.newPage();
 
   await hostContext.addCookies([
-    { name: "studydrop-demo-user", value: encodeURIComponent(JSON.stringify({ displayName: "Demo Host", email: "host@calpoly.edu" })), url: "http://127.0.0.1:3000", httpOnly: true, sameSite: "Lax" },
+    {
+      name: "studydrop-demo-user",
+      value: encodeURIComponent(
+        JSON.stringify({ displayName: "Demo Host", email: "host@calpoly.edu" }),
+      ),
+      url: "http://127.0.0.1:3000",
+      httpOnly: true,
+      sameSite: "Lax",
+    },
   ]);
   await guestContext.addCookies([
-    { name: "studydrop-demo-user", value: encodeURIComponent(JSON.stringify({ displayName: "Demo Guest", email: "guest@calpoly.edu" })), url: "http://127.0.0.1:3000", httpOnly: true, sameSite: "Lax" },
+    {
+      name: "studydrop-demo-user",
+      value: encodeURIComponent(
+        JSON.stringify({
+          displayName: "Demo Guest",
+          email: "guest@calpoly.edu",
+        }),
+      ),
+      url: "http://127.0.0.1:3000",
+      httpOnly: true,
+      sameSite: "Lax",
+    },
   ]);
   await host.goto("/sessions/new");
-  await host.getByLabel("Course").selectOption({ label: "CSC 101 · Fundamentals of Computer Science" });
+  await host
+    .getByLabel("Course")
+    .selectOption({ label: "CSC 101 · Fundamentals of Computer Science" });
   await host.getByLabel("Topic").fill("Two user demo review");
   await host.getByLabel("Location or link").fill("Demo room");
   await host.getByRole("button", { name: "Create session" }).click();
   await host.waitForURL(/\/sessions\/[0-9a-f-]{36}$/, { timeout: 20_000 });
   const sessionUrl = host.url();
+  await host.goto("/dashboard?view=hosted");
+  await expect(
+    host.getByRole("heading", { name: "Hosted sessions" }),
+  ).toBeVisible();
+  await expect(
+    host.getByRole("link", { name: "Open session details" }),
+  ).toHaveAttribute("href", new URL(sessionUrl).pathname);
 
   const sessionPath = new URL(sessionUrl).pathname;
   await guest.goto(sessionPath);
   await expect(guest).toHaveURL(sessionUrl);
   await guest.getByRole("button", { name: "Join session" }).click();
-  await expect(guest.getByRole("button", { name: "Leave session" })).toBeVisible({ timeout: 20_000 });
+  await expect(
+    guest.getByRole("button", { name: "Leave session" }),
+  ).toBeVisible({ timeout: 20_000 });
+  await guest.goto("/dashboard?view=joined");
+  await expect(
+    guest.getByRole("heading", { name: "Joined sessions" }),
+  ).toBeVisible();
+  await expect(
+    guest.getByRole("link", { name: "Open session details" }),
+  ).toHaveAttribute("href", sessionPath);
+  await expect(guest.getByText("2 of 4 seats filled")).toBeVisible();
+  await guest.goto(sessionPath);
   await guest.getByRole("button", { name: "Leave session" }).click();
-  await expect(guest.getByRole("button", { name: "Join session" })).toBeVisible({ timeout: 20_000 });
+  await expect(guest.getByRole("button", { name: "Join session" })).toBeVisible(
+    { timeout: 20_000 },
+  );
+  await guest.goto("/dashboard?view=joined");
+  await expect(
+    guest.getByRole("heading", { name: "No active joined sessions" }),
+  ).toBeVisible();
 
+  await host.goto(sessionPath);
   await host.getByRole("button", { name: "Cancel session" }).click();
-  await expect(host.getByText("Cancelled", { exact: true }).first()).toBeVisible();
+  await expect(
+    host.getByText("Cancelled", { exact: true }).first(),
+  ).toBeVisible();
+  await host.goto("/dashboard?view=past");
+  await expect(
+    host.getByRole("heading", { name: "Past sessions" }),
+  ).toBeVisible();
+  await expect(host.getByText("Cancelled", { exact: true })).toBeVisible();
   await guestContext.close();
   await hostContext.close();
 });
