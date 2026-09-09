@@ -1,6 +1,10 @@
 import { buildDemoSessions } from "@/lib/data/demo-sessions";
 import { demoCourses, type DemoCourse } from "@/lib/data/demo-courses";
-import { canJoinSession, canLeaveSession } from "@/lib/session-status";
+import {
+  canJoinSession,
+  canLeaveSession,
+  getSessionDisplayStatus,
+} from "@/lib/session-status";
 import type { StudySession } from "@/lib/types/session";
 import type { CreateSessionInput } from "@/lib/validation/session";
 
@@ -12,7 +16,9 @@ type StoreState = {
 };
 
 const STORE_KEY = Symbol.for("studydrop.demo-session-store");
-const globalStore = globalThis as typeof globalThis & { [STORE_KEY]?: StoreState };
+const globalStore = globalThis as typeof globalThis & {
+  [STORE_KEY]?: StoreState;
+};
 
 function clone(session: StudySession): StudySession {
   return { ...session };
@@ -25,10 +31,20 @@ function createState(referenceTime: Date): StoreState {
     sessions.set(session.id, clone(session));
     participants.set(
       session.id,
-      new Set(Array.from({ length: session.participantCount }, (_, index) => `seed:${session.id}:${index}`)),
+      new Set(
+        Array.from(
+          { length: session.participantCount },
+          (_, index) => `seed:${session.id}:${index}`,
+        ),
+      ),
     );
   }
-  return { sessions, participants, nextId: 1, seededIds: new Set(sessions.keys()) };
+  return {
+    sessions,
+    participants,
+    nextId: 1,
+    seededIds: new Set(sessions.keys()),
+  };
 }
 
 function state(): StoreState {
@@ -56,9 +72,12 @@ export function findMockSessionById(id: string): StudySession | undefined {
   return session ? sessionWithCount(session) : undefined;
 }
 
-export function findMockSessionByShareToken(token: string): StudySession | undefined {
+export function findMockSessionByShareToken(
+  token: string,
+): StudySession | undefined {
   const session = [...state().sessions.values()].find(
-    (candidate) => candidate.visibility === "unlisted" && candidate.shareToken === token,
+    (candidate) =>
+      candidate.visibility === "unlisted" && candidate.shareToken === token,
   );
   return session ? sessionWithCount(session) : undefined;
 }
@@ -67,7 +86,13 @@ export function isMockParticipant(id: string, actorId: string): boolean {
   return state().participants.get(id)?.has(actorId) ?? false;
 }
 
-export function createMockSession(input: CreateSessionInput & { hostId: string; hostDisplayName: string; course?: DemoCourse }): StudySession {
+export function createMockSession(
+  input: CreateSessionInput & {
+    hostId: string;
+    hostDisplayName: string;
+    course?: DemoCourse;
+  },
+): StudySession {
   const current = state();
   const sequence = String(current.nextId++).padStart(12, "0");
   const id = `55555555-5555-4555-8555-${sequence}`;
@@ -76,7 +101,13 @@ export function createMockSession(input: CreateSessionInput & { hostId: string; 
     hostId: input.hostId,
     hostDisplayName: input.hostDisplayName,
     courseLabel: input.courseLabel,
-    courseTitle: input.course?.title ?? demoCourses.find((course) => `${course.subject} ${course.catalogNumber}` === input.courseLabel)?.title ?? input.courseLabel,
+    courseTitle:
+      input.course?.title ??
+      demoCourses.find(
+        (course) =>
+          `${course.subject} ${course.catalogNumber}` === input.courseLabel,
+      )?.title ??
+      input.courseLabel,
     topic: input.topic,
     purpose: input.purpose,
     collaborationStyle: input.collaborationStyle,
@@ -97,18 +128,28 @@ export function createMockSession(input: CreateSessionInput & { hostId: string; 
   return clone(session);
 }
 
-export function joinMockSession(id: string, actorId: string, referenceTime = new Date()) {
+export function joinMockSession(
+  id: string,
+  actorId: string,
+  referenceTime = new Date(),
+) {
   const session = findMockSessionById(id);
-  if (!session) return { ok: false as const, message: "That session could not be found." };
+  if (!session)
+    return { ok: false as const, message: "That session could not be found." };
   const members = state().participants.get(id)!;
-  if (members.has(actorId)) return { ok: false as const, message: "You have already joined this session." };
+  if (members.has(actorId))
+    return {
+      ok: false as const,
+      message: "You have already joined this session.",
+    };
   const eligibility = canJoinSession(session, actorId, referenceTime);
   if (!eligibility.eligible) {
     const messages = {
       cancelled: "This session was cancelled.",
       host: "The organizer is already counted in the session capacity.",
       full: "This session is full. Try another session or check back after someone leaves.",
-      closed: "Joining is closed because this session has ended or passed its grace period.",
+      closed:
+        "Joining is closed because this session has ended or passed its grace period.",
     };
     return { ok: false as const, message: messages[eligibility.reason!] };
   }
@@ -116,24 +157,61 @@ export function joinMockSession(id: string, actorId: string, referenceTime = new
   return { ok: true as const, session: findMockSessionById(id)! };
 }
 
-export function leaveMockSession(id: string, actorId: string, referenceTime = new Date()) {
+export function leaveMockSession(
+  id: string,
+  actorId: string,
+  referenceTime = new Date(),
+) {
   const session = findMockSessionById(id);
-  if (!session) return { ok: false as const, message: "That session could not be found." };
+  if (!session)
+    return { ok: false as const, message: "That session could not be found." };
   const members = state().participants.get(id)!;
-  if (!members.has(actorId)) return { ok: false as const, message: "You are not currently joined to this session." };
+  if (!members.has(actorId))
+    return {
+      ok: false as const,
+      message: "You are not currently joined to this session.",
+    };
   const eligibility = canLeaveSession(session, actorId, referenceTime);
   if (!eligibility.eligible) {
-    return { ok: false as const, message: eligibility.reason === "cancelled" ? "This session was cancelled." : "Leaving is closed because this session has ended or passed its grace period." };
+    return {
+      ok: false as const,
+      message:
+        eligibility.reason === "cancelled"
+          ? "This session was cancelled."
+          : "Leaving is closed because this session has ended or passed its grace period.",
+    };
   }
   members.delete(actorId);
   return { ok: true as const, session: findMockSessionById(id)! };
 }
 
-export function cancelMockSession(id: string, actorId: string, referenceTime = new Date()) {
+export function cancelMockSession(
+  id: string,
+  actorId: string,
+  referenceTime = new Date(),
+) {
   const session = findMockSessionById(id);
-  if (!session) return { ok: false as const, message: "That session could not be found." };
-  if (session.hostId !== actorId) return { ok: false as const, message: "Only the organizer can cancel this session." };
-  if (session.cancelledAt) return { ok: false as const, message: "This session is already cancelled." };
-  state().sessions.set(id, { ...session, cancelledAt: referenceTime.toISOString() });
+  if (!session)
+    return { ok: false as const, message: "That session could not be found." };
+  if (session.hostId !== actorId)
+    return {
+      ok: false as const,
+      message: "Only the organizer can cancel this session.",
+    };
+  if (session.cancelledAt)
+    return {
+      ok: false as const,
+      message: "This session is already cancelled.",
+    };
+  if (getSessionDisplayStatus(session, referenceTime) === "ended") {
+    return {
+      ok: false as const,
+      message: "Ended sessions cannot be cancelled.",
+    };
+  }
+  state().sessions.set(id, {
+    ...session,
+    cancelledAt: referenceTime.toISOString(),
+  });
   return { ok: true as const, session: findMockSessionById(id)! };
 }

@@ -11,7 +11,12 @@ import { getDemoUser } from "@/lib/auth";
 import { getDemoUserId } from "@/lib/demo-user";
 import { isMockParticipant } from "@/lib/data/mock-session-store";
 import { findUnlistedSessionByToken } from "@/lib/session-discovery";
-import { canJoinSession, canLeaveSession, getOccupancy, getSessionDisplayStatus } from "@/lib/session-status";
+import {
+  canJoinSession,
+  canLeaveSession,
+  getOccupancy,
+  getSessionDisplayStatus,
+} from "@/lib/session-status";
 
 function formatStatusLabel(value: string): string {
   switch (value) {
@@ -113,13 +118,14 @@ export default async function UnlistedSessionPage({ params }: PageProps) {
   const joinEligibility = canJoinSession(session, actorId, new Date());
   const joined = user ? isMockParticipant(session.id, actorId) : false;
   const leaveEligibility = canLeaveSession(session, actorId, new Date());
-  const reason = joinEligibility.reason === "full"
-    ? "This session is full."
-    : joinEligibility.reason === "cancelled"
-      ? "This session was cancelled."
-      : joinEligibility.reason === "closed"
-        ? "Joining is closed for this session."
-        : undefined;
+  const reason =
+    joinEligibility.reason === "full"
+      ? "This session is full."
+      : joinEligibility.reason === "cancelled"
+        ? "This session was cancelled."
+        : joinEligibility.reason === "closed"
+          ? "Joining is closed for this session."
+          : undefined;
 
   return (
     <main className="page-container py-10 sm:py-12">
@@ -221,13 +227,20 @@ export default async function UnlistedSessionPage({ params }: PageProps) {
         <aside className="space-y-5">
           <Card>
             <CardContent className="space-y-4 p-5 sm:p-6">
-              <h2 className="text-lg font-semibold tracking-[-0.03em]">Your participation</h2>
+              <h2 className="text-lg font-semibold tracking-[-0.03em]">
+                Your participation
+              </h2>
               <SessionActions
                 sessionId={session.id}
                 returnPath={`/s/${session.shareToken}`}
                 canJoin={joinEligibility.eligible && !joined}
                 canLeave={joined && leaveEligibility.eligible}
-                canCancel={Boolean(user && session.hostId === getDemoUserId(user))}
+                canCancel={Boolean(
+                  user &&
+                  session.hostId === getDemoUserId(user) &&
+                  status !== "ended" &&
+                  status !== "cancelled",
+                )}
                 joined={joined}
                 disabledReason={reason}
               />

@@ -31,8 +31,16 @@ describe("demo session mutations", () => {
   beforeEach(() => resetMockSessionStore(NOW));
 
   it("validates required fields and the time window", () => {
-    expect(validateCreateSessionInput({ ...validInput, courseLabel: "BAD" }, NOW).success).toBe(false);
-    expect(validateCreateSessionInput({ ...validInput, endsAt: "2026-01-15T19:20:00.000Z" }, NOW).success).toBe(false);
+    expect(
+      validateCreateSessionInput({ ...validInput, courseLabel: "BAD" }, NOW)
+        .success,
+    ).toBe(false);
+    expect(
+      validateCreateSessionInput(
+        { ...validInput, endsAt: "2026-01-15T19:20:00.000Z" },
+        NOW,
+      ).success,
+    ).toBe(false);
     expect(validateCreateSessionInput(validInput, NOW).success).toBe(true);
   });
 
@@ -40,7 +48,11 @@ describe("demo session mutations", () => {
     const parsed = validateCreateSessionInput(validInput, NOW);
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
-    const session = createMockSession({ ...parsed.data, hostId: "user:a", hostDisplayName: "A" });
+    const session = createMockSession({
+      ...parsed.data,
+      hostId: "user:a",
+      hostDisplayName: "A",
+    });
     expect(session.participantCount).toBe(0);
     expect(joinMockSession(session.id, "user:b", NOW).ok).toBe(true);
     expect(joinMockSession(session.id, "user:c", NOW).ok).toBe(false);
@@ -51,7 +63,11 @@ describe("demo session mutations", () => {
   it("updates join and leave state without duplicate participants", () => {
     const parsed = validateCreateSessionInput(validInput, NOW);
     if (!parsed.success) throw new Error("fixture should be valid");
-    const session = createMockSession({ ...parsed.data, hostId: "user:a", hostDisplayName: "A" });
+    const session = createMockSession({
+      ...parsed.data,
+      hostId: "user:a",
+      hostDisplayName: "A",
+    });
     expect(joinMockSession(session.id, "user:b", NOW).ok).toBe(true);
     expect(joinMockSession(session.id, "user:b", NOW).ok).toBe(false);
     expect(isMockParticipant(session.id, "user:b")).toBe(true);
@@ -63,10 +79,38 @@ describe("demo session mutations", () => {
   it("restricts cancellation to the host and keeps cancelled details addressable", () => {
     const parsed = validateCreateSessionInput(validInput, NOW);
     if (!parsed.success) throw new Error("fixture should be valid");
-    const session = createMockSession({ ...parsed.data, hostId: "user:a", hostDisplayName: "A" });
+    const session = createMockSession({
+      ...parsed.data,
+      hostId: "user:a",
+      hostDisplayName: "A",
+    });
     expect(cancelMockSession(session.id, "user:b", NOW).ok).toBe(false);
     expect(cancelMockSession(session.id, "user:a", NOW).ok).toBe(true);
-    expect(findMockSessionById(session.id)?.cancelledAt).toBe(NOW.toISOString());
+    expect(findMockSessionById(session.id)?.cancelledAt).toBe(
+      NOW.toISOString(),
+    );
     expect(joinMockSession(session.id, "user:b", NOW).ok).toBe(false);
+  });
+
+  it("does not allow cancellation after a session has ended", () => {
+    const parsed = validateCreateSessionInput(
+      {
+        ...validInput,
+        startsAt: "2026-01-15T16:00:00.000Z",
+        endsAt: "2026-01-15T17:00:00.000Z",
+      },
+      new Date("2026-01-15T15:00:00.000Z"),
+    );
+    if (!parsed.success) throw new Error("fixture should be valid");
+    const session = createMockSession({
+      ...parsed.data,
+      hostId: "user:a",
+      hostDisplayName: "A",
+    });
+
+    expect(cancelMockSession(session.id, "user:a", NOW)).toEqual({
+      ok: false,
+      message: "Ended sessions cannot be cancelled.",
+    });
   });
 });
