@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   description:
     "Create and discover small, course-specific study sessions happening soon with other Cal Poly students.",
   applicationName: "StudyDrop",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
