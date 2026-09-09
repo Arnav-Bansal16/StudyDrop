@@ -2,6 +2,27 @@
 
 This is the release gate for P0. Run the full checklist against a Vercel preview connected to a non-production Supabase project. After it passes, run the marked production smoke flows again on the public production URL. Record browser, viewport, build/commit, database migration version, test accounts, and failures in the release notes.
 
+## Demo MVP checkpoint (reduced release gate)
+
+This short checklist is the release gate for the hackathon demo only. Passing it does not mean full P0 is complete; the complete checklist below remains the eventual P0 target.
+
+- [ ] Landing page and navigation work on desktop and a mobile-sized viewport.
+- [ ] Browse shows only future, non-cancelled public sessions, ordered soonest first.
+- [ ] Course search works and a zero-result state can be cleared.
+- [ ] Cards consistently show course, topic, time, status, and occupancy including the organizer.
+- [ ] A public card opens `/sessions/[id]`; unknown IDs show a safe 404.
+- [ ] A valid `/s/[token]` opens an unlisted session, while unlisted sessions/tokens never appear in browse or `/sessions/[id]`.
+- [ ] Public and unlisted details show organizer notes and meeting instructions.
+- [ ] Exact `calpoly.edu` signup, confirmation, login, protected-route redirect, session persistence, and logout work.
+- [ ] RLS prevents anonymous writes and access to another user's protected data.
+- [ ] A signed-in user can create a valid public or unlisted session with a small static course dropdown.
+- [ ] A second user can join and leave; occupancy changes correctly and capacity cannot be exceeded.
+- [ ] The organizer can cancel a session; cancellation is visible and blocks joining.
+- [ ] Hosted and Joined dashboard lists work; useful empty states are present.
+- [ ] Server-side validation protects authentication and session mutations.
+- [ ] Formatting, lint, typecheck, unit tests, and production build pass.
+- [ ] The critical flow passes manually on the production Vercel URL with two accounts and no console errors, secret exposure, broken links, or horizontal overflow.
+
 ## 1. Test readiness and automated gates
 
 - [ ] The tested build comes from the intended commit and contains no uncommitted application changes.

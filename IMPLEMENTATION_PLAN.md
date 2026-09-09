@@ -659,19 +659,19 @@ No P0 product decision remains unresolved. The catalog source is Cal Poly's offi
 
 This section is a reference sequence for building the MVP later. It does not authorize implementation now. Run the prompts in order, one at a time, and do not start the next prompt until the current phase passes its checks.
 
-### MVP structure
+### Demo MVP structure
 
 The fastest presentable path is a vertical slice that becomes real incrementally:
 
 1. Application shell and visual system.
 2. Typed demo data and session-state rules.
-3. Browse and session-detail experience.
-4. Authentication and database security foundation.
-5. Create, edit, cancel, join, and leave flows.
-6. Dashboard and complete UI states.
-7. Release checks and Vercel deployment.
+3. Public browse and session-detail demo.
+4. Minimal Supabase schema and Cal Poly authentication.
+5. Create, join, leave, capacity, and cancellation vertical slice.
+6. Minimal Hosted and Joined dashboard.
+7. Focused release checks and Vercel smoke test.
 
-This order makes the product demonstrable after Prompt 3 while preserving a direct route to the real P0. Mock data is temporary and must stay behind the same typed data-access interface that Supabase later implements. Do not create a separate backend, placeholder P1 feature, participant roster, runtime catalog scraper, or generic abstraction that serves only hypothetical future work.
+This order produces the smallest credible hackathon vertical slice while preserving a direct route to full P0. It intentionally defers edit, Past dashboard, the complete catalog snapshot, secondary filters, exhaustive state variants, broad browser matrices, and production-hardening tests. These remain P0 requirements and must not be marked complete merely because the Demo MVP checkpoint passes. Mock data is temporary and must stay behind the same typed data-access interface that Supabase later implements. Do not create a separate backend, placeholder P1 feature, participant roster, runtime catalog scraper, or generic abstraction that serves only hypothetical future work.
 
 ### Context header to reuse
 
@@ -708,17 +708,17 @@ Expected result: every important P0 state can be rendered consistently without d
 ```text
 [Context header]
 
-Implement only the read-only discovery vertical slice using the typed demo-data interface. Build /sessions with URL-backed search and filters for course, date, purpose, and collaboration style; responsive session cards; loading, empty, and error presentation; and /sessions/[id] plus /s/[token] details. Show organizer notes and meeting instructions to anyone with the relevant link. Unlisted sessions must never appear in browse. Use the confirmed three collaboration styles and five purposes. Add focused tests for filtering and public/unlisted routing. Do not add auth, forms, or persistence.
+Implement only the Demo MVP read-only discovery slice using the existing typed demo-data interface. Build `/sessions` with course search, responsive cards, populated and zero-result states, `/sessions/[id]`, and `/s/[token]`. Browse shows only future, non-cancelled public sessions ordered soonest first. Reuse the shared status and occupancy helpers. Show organizer notes and meeting instructions on valid details. Unlisted sessions and tokens must never appear in browse or public-ID routes. Add focused tests for course search and public/unlisted routing. Defer secondary filters, DST coverage, simulated read failures, auth, forms, and persistence.
 ```
 
-Expected result: this is the earliest presentation-ready demo—landing → browse/filter → detail—including all key status visuals.
+Expected result: a presentation-ready landing → browse/search → detail demo with safe public/unlisted behavior.
 
 ### Prompt 4 — Supabase schema, catalog, and authentication
 
 ```text
 [Context header]
 
-Implement only Phase 2 and replace no working presentation components unnecessarily. Add local Supabase configuration, versioned migrations, generated types, explicit grants, RLS tests, cookie-based SSR clients, PKCE confirmation, login/signup/logout, and protected-route redirects. Enforce exact calpoly.edu registration in Zod, the Server Action, and a Before User Created Postgres Auth Hook; reject lookalike domains and require email confirmation. Add a reproducible static snapshot of all courses from the official Cal Poly 2026–2028 catalog and expose it through a searchable course data function. Do not implement session mutations yet. Run database reset/tests, auth integration tests, lint, typecheck, and build.
+Implement only the Demo MVP Supabase/auth foundation. Add versioned migrations for profiles, sessions, and memberships; relationships, constraints, minimum indexes, RLS, cookie-based SSR clients, signup/login/logout, email confirmation, and protected-route redirects. Enforce exact `calpoly.edu` registration in shared validation and server-side/database enforcement. Use a small committed static course list for the demo; defer the complete catalog artifact, local Supabase automation, exhaustive pgTAP coverage, and separate Preview database unless already easy to configure. Do not implement session mutations yet. Run focused auth/RLS checks, lint, typecheck, and build.
 ```
 
 Expected result: real accounts and database security work, while browse/detail may still use the existing typed demo-data adapter until the next prompt.
@@ -728,7 +728,7 @@ Expected result: real accounts and database security work, while browse/detail m
 ```text
 [Context header]
 
-Implement only the session write vertical slice. Replace the demo session adapter with Supabase reads and add create, edit, cancel, join, and leave through Server Actions and narrowly granted database functions. Use shared Zod schemas. All fields freeze at starts_at; cancellation remains allowed while in progress; join/leave close at the earlier of starts_at + 15 minutes or ends_at. Capacity includes the organizer. Lock the session row so concurrent final-seat joins cannot overbook. Keep public/unlisted behavior and share-token privacy exactly as documented. Add pgTAP/integration tests for authorization, lifecycle boundaries, duplicate requests, and concurrent final-seat attempts.
+Implement only the Demo MVP session-action vertical slice. Replace demo reads with Supabase and add create, cancel, join, and leave using Server Actions, shared validation, and narrow database functions/policies. Capacity includes the organizer and must not be exceeded. Keep public/unlisted behavior and token privacy. Add focused authorization, capacity, and happy-path tests. Defer editing, optimistic UI, exhaustive lifecycle/idempotency cases, and dedicated concurrency stress tooling; keep database writes atomic enough that two joins cannot knowingly overbook.
 ```
 
 Expected result: the primary two-user StudyDrop journey is persistent, authorized, and race-safe.
@@ -738,7 +738,7 @@ Expected result: the primary two-user StudyDrop journey is persistent, authorize
 ```text
 [Context header]
 
-Implement only Phase 6. Build the real Hosted, Joined, and Past dashboard views using existing data functions and components. Hosted and Joined retain in-progress sessions until they end; Past includes ended and cancelled sessions. Show occupancy counts only—never a participant roster. Audit every P0 route for responsive layout, keyboard use, accessible labels/errors, and complete loading, empty, expected-error, unexpected-error, disabled, and success states. Add only tests that cover meaningful behavior not already tested. Run the full local check suite and a mobile browser pass.
+Implement only the Demo MVP dashboard. Build real Hosted and Joined lists using existing data functions/components, with visibility/status badges, occupancy counts, and useful empty states. Never show a participant roster. Do a focused responsive, keyboard, and accessible-label check on the critical flow. Defer Past, exhaustive state coverage, and broad browser/accessibility audits. Run focused tests, lint, typecheck, build, and one mobile-sized browser pass.
 ```
 
 Expected result: all P0 flows feel finished rather than merely functional.
@@ -748,7 +748,7 @@ Expected result: all P0 flows feel finished rather than merely functional.
 ```text
 [Context header]
 
-Implement no new product features. Execute TEST_CHECKLIST.md as the release gate, fixing only P0 defects. Verify clean install, formatting, lint, typecheck, unit tests, Supabase reset/pgTAP, production build, and the critical Playwright flows. Configure isolated Preview and Production environment variables, Supabase redirect URLs/Auth Hook/SMTP, and Vercel Git deployment. Validate a preview with two accounts before production. After production deployment, run the smoke checklist and report the URL, commit, migration version, checks, remaining risks, and rollback target.
+Implement no new product features. Execute only `TEST_CHECKLIST.md` → `Demo MVP checkpoint`, fixing Demo MVP defects. Verify formatting, lint, typecheck, unit tests, production build, secrets, and the critical two-account flow. Configure the required Supabase/Vercel environment variables, redirect URLs, confirmation email, migrations, and production Git deployment. Smoke-test production on desktop and a mobile-sized viewport. Defer the complete P0 checklist, broad browser matrix, formal rollback exercise, migration-drift automation, and unrelated dependency cleanup. Report the URL, commit, checks, blockers, and deferred P0 items.
 ```
 
 Expected result: a publicly deployed, tested P0 artifact ready for the hackathon submission.

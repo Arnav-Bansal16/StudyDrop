@@ -107,3 +107,5 @@ These items must not be added to the initial build unless the project owner expl
 ## Scope note
 
 P0 is the committed MVP. P1 is optional and should begin only after P0 is complete and reliable. No separate P2 feature set has been defined yet; any future P2 ideas must remain deferred until explicitly agreed upon and recorded here.
+
+For the hackathon demo, implementation may first target the smaller **Demo MVP checkpoint** defined in `IMPLEMENTATION_PLAN.md` and `TEST_CHECKLIST.md`. That checkpoint is a presentable vertical slice, not completion of P0; deferred P0 requirements remain required before claiming P0 complete.
